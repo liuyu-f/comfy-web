@@ -20,6 +20,7 @@ dist-ssr
 # 本地数据（保护隐私）
 server_data
 *.log
+*副本*
 
 # Editor directories and files
 .vscode/*
