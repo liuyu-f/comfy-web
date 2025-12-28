@@ -1,0 +1,34 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 依赖包（绝对不能传，别人用 pnpm install 重新下）
+node_modules
+dist
+dist-ssr
+*.local
+
+# 编译产生的临时文件
+.eslintcache
+.pnpm-debug.log*
+
+# 本地数据（保护隐私）
+server_data
+*.log
+*副本*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
