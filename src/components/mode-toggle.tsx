@@ -1,5 +1,5 @@
+// 黑暗模式切换按钮
 import { Moon, Sun, Monitor } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,20 +16,20 @@ export function ModeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+          <Sun className="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+          <Moon className="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun strokeWidth={3}/>
+          <Sun strokeWidth={2}/>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon strokeWidth={3}/>
+          <Moon strokeWidth={2}/>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          <Monitor strokeWidth={3}/>
+          <Monitor strokeWidth={2}/>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

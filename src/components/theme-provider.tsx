@@ -1,3 +1,4 @@
+// 黑暗模式框架，一般在App.tsx中引入<ThemeProvider>并用其将所有ui内容包裹才能正确切换黑暗模式
 import { createContext, useContext, useEffect, useState } from "react"
 
 type Theme = "dark" | "light" | "system"
