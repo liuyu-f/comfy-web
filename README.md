@@ -1,99 +1,22 @@
-# React + TypeScript + Vite
+# ComfyUI API的生图前端开发 (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## ComfyUI官方API文档
 
-Currently, two official plugins are available:
+- ComfyUI的[官方API文档](https://raw.githubusercontent.com/Comfy-Org/ComfyUI/refs/heads/master/server.py)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 使用了shadcn的css深浅主题
 
-## React Compiler
+- 用shadcn的css深浅主题：
+  - [Theming](https://ui.shadcn.com/docs/theming)
+  - [dark-mode](https://ui.shadcn.com/docs/dark-mode/vite)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## shadcn的UI组件仓库
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- 使用[shadcn官方组件](https://ui.shadcn.com/docs/components)（能很好的配合shadcn CSS模板的组件）
 
 ## 项目开发记录
 
-AI帮助无代码经验的我创建node.js项目
-
-### 技术栈解释
-
-| 技术           | 详情                                                                |
-| -------------- | ------------------------------------------------------------------- |
-| Node.js        | #地基，搭建网页的一系列工具基础                                     |
-| pnpm           | #包管理器，管理 node 的组件包                                       |
-| Vite           | #构建工具，专注于开发体验和打包，与 Next.js 不兼容。内置 http-proxy |
-| React          | #核心库(引擎)                                                       |
-| TypeScript     | #语言(规矩)，加上了类型的 JS。防止你写出 Bug，大项目标配            |
-| React Router   | #路由(管理页面跳转)。Next.js 自带路由，Vite 需要手动装这个          |
-| zustand        | #状态管理(管理全局数据)，比如存储“当前生成的图片列表”等             |
-| TanStack Query | 请求管理(管理 API 请求)。强烈推荐。用来轮询 ComfyUI 的生图进度神器  |
-| ESLint         | #代码分析                                                           |
-| Shadcn UI      | #基于 Tailwind 和 Framer Motion 的 UI 模板，有规范化的 css          |
-
-> 注意 Vite 只是构建工具，http-proxy 只在本地开发有效，项目部署到云端或其他地方需要 Nginx 或者一个 Node.js 后端（Express/NestJS） 来扮演这个“代理”的角色。核心依然是使用 http-proxy-middleware 包
-
-### 项目创建 （Vite）
+### 项目创建
 
 #### 用 pnpm 创建项目 (替代 npx)
 
@@ -199,9 +122,6 @@ _注意：这里用了 pnpm dlx，它就是 pnpm 版本的 npx（一次性运行
 ```Bash
 Which color would you like to use as base color? › Neutral
 ```
-
-**shadcn-ui 使用方式：**
-在[示例组件](https://ui.shadcn.com/docs/components)出查找所需组件，并示例使用下方代码安装组件。
 
 安装 路由管理、状态管理、请求管理
 
