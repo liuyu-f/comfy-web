@@ -1,222 +1,228 @@
-# ComfyUI API的生图前端开发 (React + TypeScript + Vite)
+# ComfyUI Web 项目文档
 
-## ComfyUI官方API文档
+## 项目简介
 
-- ComfyUI的[官方API文档](https://raw.githubusercontent.com/Comfy-Org/ComfyUI/refs/heads/master/server.py)
+这是一个基于 React + TypeScript 的 ComfyUI Web 前端，用于远程控制 ComfyUI 进行 AI 绘画任务。
 
-## 使用了shadcn的css深浅主题
+## 技术栈
 
-- 用shadcn的css深浅主题：
-  - [Theming](https://ui.shadcn.com/docs/theming)
-  - [dark-mode](https://ui.shadcn.com/docs/dark-mode/vite)
+- **前端框架**：React 19 + TypeScript 5.9
+- **构建工具**：Vite 7.3
+- **状态管理**：Zustand 5.0
+- **样式方案**：Tailwind CSS 4 + Shadcn UI
+- **后端代理**：Express 5.2 + http-proxy-middleware 3.0
 
-## shadcn的UI组件仓库
+## 项目结构
 
-- 使用[shadcn官方组件](https://ui.shadcn.com/docs/components)（能很好的配合shadcn CSS模板的组件）
-
-## 项目开发记录
-
-### 项目创建
-
-#### 用 pnpm 创建项目 (替代 npx)
-
-创建项目
-先使用 vite 创建新的 React 项目，并选择 React + TypeScript 模板：
-
-```Bash pnpm
-pnpm create vite@latest
+```
+src/
+  config/           # API 配置常量和 URL 生成
+    api.ts
+  services/         # 业务服务层
+    comfyService.ts
+  store/            # 状态管理（Zustand）
+    use-comfy-store.ts
+  hooks/            # 自定义 React Hooks
+    useComfy.ts
+  pages/            # 页面组件
+    HomePage.tsx
+  components/       # UI 组件
+    ui/             # Shadcn 组件
+    mode-toggle.tsx
+    ...
+  types/            # TypeScript 类型定义
+  utils/            # 工具函数
+  constants/        # 全局常量
+  lib/              # 库函数
+  assets/           # 静态资源
 ```
 
-#### 安装并配置 Vite 的 shadcn/ui （Vite）
+## 核心模块
 
-安装 Tailwind CSS
+### 1. **config/api.ts** - API 配置
 
-```Bash pnpm
-pnpm add tailwindcss @tailwindcss/vite
+定义了所有 API 端点和超时配置：
+```typescript
+- PROXY_PREFIX: '/api-comfy'   // 前端代理地址
+- WS_PATH: '/ws'                // WebSocket 端点
+- VIEW_PATH: '/view'             // 图片查看端点
+- CONNECTION_TIMEOUT: 10秒       // WebSocket 连接超时
+- REQUEST_TIMEOUT: 30秒          // HTTP 请求超时
 ```
 
-将 src/index.css 的内容替换为以下代码：
+### 2. **services/comfyService.ts** - 业务服务
 
-```css src/index.css
-@import "tailwindcss";
+负责与 ComfyUI 后端的所有通信：
+
+**WebSocket 连接**（带自动超时）：
+```typescript
+comfyService.connect(clientId)  // 建立 WebSocket 连接
+comfyService.disconnect()        // 断开连接
+comfyService.on(event, callback) // 监听事件
 ```
 
-编辑 tsconfig.json
-当前版本的 Vite 会把 TypeScript 配置拆分为三个文件，其中有两个需要修改。 在 tsconfig.json 与 tsconfig.app.json 的 compilerOptions 中添加 baseUrl 与 paths：
+**HTTP 请求**（所有请求都有 30秒超时保护）：
+```typescript
+getSystemStats()      // 获取系统信息
+queuePrompt(workflow) // 提交生图任务
+interrupt()           // 中断生成
+clearQueue()          // 清空队列
+uploadImage(file)     // 上传图片
+```
 
-```Json tsconfig.json
-{
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
-  /* 便于 IDE 解析路径别名 */
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+### 3. **store/use-comfy-store.ts** - 状态管理
+
+使用 Zustand 管理全局状态：
+```typescript
+- wsStatus        // WebSocket 连接状态: 'closed' | 'connecting' | 'open'
+- username        // 当前用户名
+- queueRemaining  // 队列中剩余任务数
+- progress        // 当前任务进度
+- previewBlobUrl  // 预览图片 URL
+- lastError       // 最后一个错误信息
+```
+
+### 4. **hooks/useComfy.ts** - 自定义 Hooks
+
+提供便捷的状态订阅接口：
+```typescript
+useComfyStatus()      // 获取连接和进度状态
+useComfyActions()     // 获取操作方法（connect, disconnect等）
+useComfyProgress()    // 获取进度百分比
+useComfyPreview()     // 获取预览图片
+useComfyConnection()  // 获取连接状态和方法
+```
+
+## 工作流程
+
+```
+前端 (React)
+   ↓
+config/api.ts (配置)
+   ↓
+services/comfyService.ts (服务)
+   ↓
+store/use-comfy-store.ts (状态)
+   ↓
+hooks/useComfy.ts (React Hooks)
+   ↓
+components (UI 组件)
+   ↓
+后端代理 (Express) → ComfyUI (8188)
+```
+
+## 环境配置
+
+在项目根目录创建 `.env` 文件：
+
+```bash
+# ComfyUI 后端地址配置
+VITE_COMFY_HOST=127.0.0.1    # 本地 ComfyUI
+VITE_COMFY_PORT=8188         # ComfyUI 默认端口
+
+# 或者远程地址
+# VITE_COMFY_HOST=192.168.1.100
+# VITE_COMFY_PORT=8188
+```
+
+前端代码自动通过 `localhost:3000` 访问，后端在 `main-server.js` 中配置代理规则。
+
+## 快速开始
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式（带热更新）
+pnpm dev        # 访问 http://localhost:3000
+
+# 生产构建
+pnpm build      # 输出到 dist/
+
+# 生产模式运行
+pnpm preview
+
+# 代码检查
+pnpm lint
+```
+
+## 超时策略
+
+### CONNECTION_TIMEOUT (10 秒)
+- **场景**：建立 WebSocket 连接
+- **触发**：网络不稳定、ComfyUI 无响应
+- **处理**：自动断开，显示错误提示
+
+### REQUEST_TIMEOUT (30 秒)
+- **场景**：所有 HTTP 请求（提交任务、查询状态等）
+- **包含**：系统信息查询、生图任务提交、图片上传
+- **触发**：网络延迟、服务器卡顿
+- **处理**：自动中止请求，抛出错误
+
+**为什么是这些时间**？
+- 10秒：足够处理网络连接的初始化
+- 30秒：足够处理 ComfyUI 的模型加载和计算
+- 防止无限期挂起，提升用户体验
+
+## 错误处理
+
+所有错误统一使用 `AppError` 类：
+```typescript
+interface AppError {
+  code: string           // 错误代码（CONNECTION_TIMEOUT, QUEUE_ERROR等）
+  message: string        // 用户友好的错误信息
+  details?: any          // 详细信息（开发调试用）
 }
 ```
 
-编辑 tsconfig.app.json
-在 tsconfig.app.json 中加入以下配置，便于 IDE 解析路径别名：
+## 事件系统
 
-```Json tsconfig.app.json
-{
-  "compilerOptions": {
-    // ...
-    /* 便于 IDE 解析路径别名 */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
-    // ...
-  }
-}
+使用 EventTarget + CustomEvent 实现类型安全的事件系统：
+
+```typescript
+// 监听事件
+comfyService.on('status', ({ queueRemaining }) => {
+  console.log(`队列剩余: ${queueRemaining}`);
+});
+
+// 支持的事件
+- 'status'            // 队列状态更新
+- 'progress'          // 生成进度
+- 'executing'         // 当前执行节点
+- 'execution_start'   // 任务开始
+- 'execution_success' // 任务成功
+- 'execution_error'   // 任务失败
+- 'b_preview'         // 图片预览（二进制）
+- 'disconnected'      // 连接断开
 ```
 
-更新 vite.config.ts
-在 vite.config.ts 中加入以下配置，确保路径解析正常：
+## 下一步开发
 
-```Bash pnpm
-pnpm add -D @types/node
-```
+### 待实现功能
+1. **参数面板** - 编辑 ComfyUI 工作流参数
+2. **流程编辑器** - 可视化编辑工作流
+3. **预设管理** - 保存/加载工作流预设
+4. **图片查看器** - 显示生成结果
 
-```Ts vite.config.ts
-import path from "path"
-import tailwindcss from "@tailwindcss/vite"
-import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+### 开发建议
+- 使用现有的 Hooks 获取状态和方法
+- 参考 `HomePage.tsx` 的实现方式
+- 新增组件放在 `components/` 目录
+- 保持 TypeScript 类型安全
 
-// https://vite.dev/config/
-export default defineConfig({
-  server: {
-    host: 'localhost', // 监听地址
-    port: 5173, // 监听端口
-  },
+## 常见问题
 
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-})
-```
+**Q: 为什么前端只知道本地代理地址？**
+A: 这是前后端分离的最佳实践。前端不需要关心真实的 ComfyUI 地址，由后端的 `.env` 文件管理。这样可以轻松切换 ComfyUI 地址（本地/远程）。
 
-运行 CLI
-执行 `shadcn` 的 init 命令完成初始化：
+**Q: 超时了会怎样？**
+A: 请求会被自动中止，触发错误处理流程，显示用户友好的错误信息。Store 中的 `lastError` 会被更新。
 
-```Bash pnpm
-pnpm dlx shadcn@latest init
-```
+**Q: 如何调试 WebSocket 连接？**
+A: 
+1. 打开浏览器 DevTools → Network → WS
+2. 查看 `ws://localhost:3000/api-comfy/ws` 连接
+3. 查看浏览器控制台的 `[ComfyService]` 日志
 
-_注意：这里用了 pnpm dlx，它就是 pnpm 版本的 npx（一次性运行工具）。_
-你会根据提示回答几个问题来生成 `components.json`。
-
-```Bash
-Which color would you like to use as base color? › Neutral
-```
-
-安装 路由管理、状态管理、请求管理
-
-```Bash pnpm
-pnpm add react-router-dom zustand @tanstack/react-query
-```
-
-### 应用了shadcn的`theming`和`dark-mode` （Vite）
-
-shadcn的[theming](https://ui.shadcn.com/docs/theming)和[dark-mode](https://ui.shadcn.com/docs/dark-mode/vite)
-
-### 项目文件解释
-
-项目就有很多文件了，此时一一解释。
-
-```TXT
-comfy-web:.
-|   .gitignore
-|   components.json
-|   eslint.config.js
-|   index.html
-|   package.json
-|   pnpm-lock.yaml
-|   pnpm-workspace.yaml
-|   README.md
-|   tsconfig.app.json
-|   tsconfig.json
-|   tsconfig.node.json
-|   vite.config.ts
-|
-+---public
-|       vite.svg
-|
-\---src
-    |   App.tsx
-    |   index.css
-    |   main.tsx
-    |
-    +---assets
-    |       react.svg
-    |
-    +---components
-    |   \---ui
-    |           button.tsx
-    |
-    \---lib
-            utils.ts
-```
-
-> 搞清楚自己的“领地”边界。
-
-你现在的目录结构是一个标准的 **Vite + React + TS + Shadcn UI** 项目。不用被这些文件吓到，**90% 的文件你可能一个月都不会去碰它们一次**。
-
-我把它们按照功能分类，告诉你哪些是干嘛的：
-
-#### 1. 核心配置文件（项目的“大脑”）
-
-这些文件定义了项目如何运行和编译。
-
-- **`vite.config.ts`**: **（重要）** 你的构建配置。你之前写的 API 代理就在这里。
-- **`package.json`**: **（重要）** 记录了你安装的所有包（React, Shadcn 等）和运行命令（`dev`, `build`）。
-- **`pnpm-lock.yaml`**: 自动生成的。记录了每个包的确切版本，**永远不要手动改它**。
-- **`tsconfig.json` 系列**:
-  - `tsconfig.json`: 总配置文件。
-  - `tsconfig.app.json`: 专门给你的网页代码（src 下的代码）用的 TS 配置。
-  - `tsconfig.node.json`: 专门给 Vite 配置文件（运行在 Node 环境下）用的 TS 配置。
-  - _为什么拆开？_ 因为网页跑在浏览器，Vite 跑在 Node，它们的 TS 规则略有不同。**一般不需要手动操作。**
-- **`index.html`**: 网页的入口。你会发现里面只有一行 `<div id="root"></div>`，React 会把代码塞进这里。
-
----
-
-#### 2. UI 与样式（你的“装修材料”）
-
-这是安装 Shadcn UI 后出现的文件。
-
-- **`components.json`**: Shadcn UI 的配置文件。它记录了你的 UI 组件存放在哪，用的是哪种颜色主题。**初始化后不用管。**
-- **`src/components/ui/`**: **（你会经常看这里）**。
-  - 当你运行 `npx shadcn@latest add button` 时，它会把 `button.tsx` 的源代码直接下载到这个文件夹。
-  - **重点：** Shadcn 的组件不是在 `node_modules` 里的，而是在你的文件夹里，这意味着你**可以随时直接修改 `button.tsx` 的源代码**。
-- **`src/lib/utils.ts`**: Shadcn 生成的工具函数。里面那个 `cn()` 函数是用来合并 Tailwind 类名的。**你会经常在写组件时引用它。**
-
----
-
-#### 3. 源代码区（你的“工作间”）
-
-这是你 95% 的代码编写地。
-
-- **`src/main.tsx`**: 整个 React 应用的起点。它负责把 `App.tsx` 挂载到 HTML 的 `root` 节点上。
-- **`src/App.tsx`**: 你的根组件。目前你所有的测试代码都写在这里。
-- **`src/index.css`**: 全局样式。Tailwind 的指令就在这里。
-
----
-
-#### 4. 几个“奇怪”的文件（实事求是地解释）
-
-- **`pnpm-workspace.yaml`**: 里面存在 `onlyBuiltDependencies`(仅已构建的依赖项)，这是 pnpm v9/v10 版本 引入的安全特性。
-  - `onlyBuiltDependencies`：允许 pnpm 在安装时自动构建它包含的依赖项。也就是信任被 pnpm approve-builds 构建过的依赖项。
-- **`eslint.config.js`**: 你的“监工”。如果你代码写得不规范（比如定义了变量没用），它会在编辑器里给你画波浪线。
+**Q: 如何处理离线场景？**
+A: 监听 `useComfyStatus()` 中的 `wsStatus` 状态，当为 'closed' 时显示离线界面。

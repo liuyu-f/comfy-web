@@ -1,6 +1,7 @@
 // src/App.tsx
 import { ThemeProvider } from "@/components/theme-provider";
 import HomePage from "@/pages/HomePage";
+import { STORAGE_KEYS } from "@/constants";
 
 /**
  * App component
@@ -10,7 +11,7 @@ import HomePage from "@/pages/HomePage";
  */
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="comfy-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey={STORAGE_KEYS.THEME}>
       <HomePage />
     </ThemeProvider>
   );

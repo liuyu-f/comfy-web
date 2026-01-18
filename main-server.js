@@ -5,8 +5,17 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import dotenv from 'dotenv';
+
+// 加载 .env 文件
+dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// ComfyUI 配置（与 api.ts 保持同步）
+const COMFY_HOST = process.env.VITE_COMFY_HOST || '127.0.0.1';
+const COMFY_PORT = parseInt(process.env.VITE_COMFY_PORT || '8188', 10);
+const COMFY_URL = `http://${COMFY_HOST}:${COMFY_PORT}`;
 
 async function startServer() {
   const app = express();
@@ -14,7 +23,7 @@ async function startServer() {
 
   // --- 1. ComfyUI 代理配置 ---
   const comfyProxy = createProxyMiddleware({
-    target: 'http://127.0.0.1:8188',
+    target: COMFY_URL,
     changeOrigin: true,
     ws: true, 
     // 关键：将所有 /api-comfy 开头的请求，去掉前缀后转发
@@ -23,7 +32,7 @@ async function startServer() {
     on: {
       proxyReqWs: (proxyReq) => {
         // 部分 ComfyUI 版本需要校验 Origin 头部防止 403
-        proxyReq.setHeader('Origin', 'http://127.0.0.1:8188');
+        proxyReq.setHeader('Origin', COMFY_URL);
       },
     }
   });
@@ -54,7 +63,7 @@ async function startServer() {
 
   const server = app.listen(PORT, () => {
     console.log(`\n  🚀 Web UI:  http://localhost:${PORT}`);
-    console.log(`  🔗 Proxying: http://localhost:${PORT}/api-comfy -> ComfyUI\n`);
+    console.log(`  🔗 Proxying: http://localhost:${PORT}/api-comfy -> ${COMFY_URL}\n`);
   });
 
   // --- 4. 关键：处理 WebSocket 升级 ---
