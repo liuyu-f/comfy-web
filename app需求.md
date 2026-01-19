@@ -15,7 +15,7 @@
 
 ```ini
 图片查看器模块: 查看（可以放大拖动等，可以引入包或者）/翻页
-流程模板编辑器模块: 文件名、JSON编辑器、参数状态（已支持参数常态显示在旁边，当编辑器里存在该参数时以绿色或其他颜色显示，当编辑器存在不支持的参数时，以红色额外显示）
+流程模板编辑器模块: 文件名、JSON编辑器、参数状态（参数常态显示在旁边，当编辑器里存在该参数时以绿色或其他颜色显示，当编辑器存在不支持的参数时，以红色额外显示）
 
 界面结构
 ├─ 顶栏
@@ -25,34 +25,32 @@
 │  │  │  ├─ 预设list框
 │  │  │  └─ 保存、删除按钮   # 预设下拉框有选中的预设则直接保存，删除
 │  └─ .顶栏-右侧
-│     ├─ comfy IP输入 + status-dot
 │     ├─ comfy工作流下拉    # 可以显示选中的流程
 │     │  ├─ 流程list框
-│     │  └─ 编辑、删除按钮   # 流程下拉框有选中的流程则直接保存，删除，没有则新建
+│     │  └─ 编辑、删除按钮   # 流程下拉框有选中的流程则直接编辑，没有则新建
 │     └─ 全局设置（popup-panel）
+│        ├─ comfy IP输入 + status-dot + 重连按钮
 │        └─ 模型、VAE、Clip最后一层、CFG缩放
-├─ 图像区                   # 可能
-│     ├─ btn-保存(保存到服务器的output文件夹)，btn-下载(浏览器下载)
+├─ 图像区
 │     ├─ 预览               # 点击由图片查看器查看。 由于可能返回一张或者多张图片，如何显示是个学问
+│     ├─ btn-保存(保存到服务器的output文件夹)，btn-下载(浏览器下载) # 在有图时显示
 │     └─ 底部进度条
 └─ 底栏
    ├─ .底栏-左侧
    │  └─ 参数设置（popup-panel）
-   │     ├─ 提示词
+   │     ├─ 提示词           # 标签页
    │     │  └─ 正向提示词，负面向提示词
-   │     ├─ 画布
+   │     ├─ 画布            # 标签页
    │     │  └─ 初始宽高(仅文生图，图生图的分辨率自动调整)、缩放倍数("%scale%")、缩放算法("%upscale_method%")
-   │     ├─ 采样器
+   │     ├─ 采样器            # 标签页
    │     │  └─ 种子、步数、cfg、sampler、scheduler、denois
-   │     └─ 采样器2
+   │     └─ 采样器2           # 标签页
    │        └─ 种子_2、步数_2、cfg_2、sampler_2、scheduler_2、denois_2
    └─ .底栏-右侧
-      └─ 生成按钮           # 当视口宽度不够时，生成按钮自动另起一行
+      └─ 生成按钮
 ```
 
-1.当点击参数的标题时，能够显示参数的模板指代，如:"%seed%"
-2.其他需要独立的模块都可以独立出来，方便编辑和定位问题。
-由于页面需要在手机上也要体验良好，所以我想了一个充分利用弹出机制的架构，这个架构只是我幼稚的想法，你可以大方的修整或重新设计。
+1.参数的标题胖以辅助色的标签形式显示参数的模板指代，如:"%seed%"
 
 ## 参数参考
 
@@ -85,7 +83,10 @@
 
 ## 生图流程的 工作流模板 与 最终工作流示例
 
-工作流模板:（注意这模板只用作参考，不要写死在代码里，让用户自己编辑或上传）
+工作流模板:
+> 注意这模板只用作参考，不要写死在代码里，让用户自己编辑或上传
+
+> 替换时注意格式，一般 数值类 是不需要被双引号包裹的
 
 ```json 工作流模板
 {
@@ -281,93 +282,6 @@
     "class_type": "PreviewImage",
     "_meta": {
       "title": "预览图像-后采样"
-    }
-  }
-}
-```
-
----
-
-最终发送工作流示例:
-
-```json 最终工作流示例
-{
-  "3": {
-    "inputs": {
-      "seed": 156680208700286,
-      "steps": 20,
-      "cfg": 8,
-      "sampler_name": "euler",
-      "scheduler": "normal",
-      "denoise": 1,
-      "model": ["4", 0],
-      "positive": ["6", 0],
-      "negative": ["7", 0],
-      "latent_image": ["5", 0]
-    },
-    "class_type": "KSampler",
-    "_meta": {
-      "title": "K采样器"
-    }
-  },
-  "4": {
-    "inputs": {
-      "ckpt_name": "三次元_AstrAnime\\astranime_V6.safetensors"
-    },
-    "class_type": "CheckpointLoaderSimple",
-    "_meta": {
-      "title": "Checkpoint加载器（简易）"
-    }
-  },
-  "5": {
-    "inputs": {
-      "width": 512,
-      "height": 512,
-      "batch_size": 1
-    },
-    "class_type": "EmptyLatentImage",
-    "_meta": {
-      "title": "空Latent图像"
-    }
-  },
-  "6": {
-    "inputs": {
-      "text": "beautiful scenery nature glass bottle landscape, , purple galaxy bottle,",
-      "clip": ["4", 1]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码"
-    }
-  },
-  "7": {
-    "inputs": {
-      "text": "text, watermark",
-      "clip": ["4", 1]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP文本编码"
-    }
-  },
-  "8": {
-    "inputs": {
-      "samples": ["3", 0],
-      "vae": ["4", 2]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE解码"
-    }
-  },
-  "9": {
-    "inputs": {
-      "filename_prefix": "ComfyUI",
-      "images": ["8", 0]
-    },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "保存图像"
     }
   }
 }
